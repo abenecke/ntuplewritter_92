@@ -59,12 +59,12 @@ if isDebug:
 
 process.source = cms.Source("PoolSource",
   fileNames  = cms.untracked.vstring([
-            'file:////nfs/dust/cms/user/hinzmann/6214AEE4-751A-E711-8645-0025905A6056.root'
+            'file:////nfs/dust/cms/user/abenecke/CMSSW_9_2_3_patch1_old/src/UHH2/core/FEE8581F-F83C-E711-8F1A-0025905B859A.root'
   ]),
   skipEvents = cms.untracked.uint32(0)
 )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100))
 
 # Grid-control changes:
 gc_maxevents = '__MAX_EVENTS__'
@@ -293,6 +293,8 @@ task.add(process.ak8PuppiJets)
 process.ak8PuppiJetsFat = process.ak8CHSJets.clone (src='puppi')
 task.add(process.ak8PuppiJetsFat)
 
+process.ak4PuppiJets  = ak4PFJets.clone (src = 'puppi', doAreaFastjet = True, jetPtMin = 10.)
+task.add(process.ak4PuppiJets)
 # copy all the jet collections above; just use 'puppi' instead of 'chs' as input:
 for name in ['ca8CHSJets', 'ca15CHSJets', 'ca8CHSJetsPruned', 'ca15CHSJetsFiltered']:#, 'cmsTopTagCHS', 'hepTopTagCHS']:
     setattr(process, name.replace('CHS', 'Puppi'), getattr(process, name).clone(src = cms.InputTag('puppi')))
@@ -537,6 +539,14 @@ addJetCollection(process,labelName = 'AK8PFPUPPI', jetSource = cms.InputTag('ak8
     muSource =cms.InputTag( 'slimmedMuons'),
     elSource = cms.InputTag('slimmedElectrons')
 )
+
+addJetCollection(process,labelName = 'AK4PFPUPPI', jetSource = cms.InputTag('ak4PuppiJets'), algo = 'AK', rParam=0.4, genJetCollection=cms.InputTag('slimmedGenJets'), jetCorrections = ('AK4PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None'),pfCandidates = cms.InputTag('packedPFCandidates'),
+    pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
+    svSource = cms.InputTag('slimmedSecondaryVertices'),
+    muSource =cms.InputTag( 'slimmedMuons'),
+    elSource = cms.InputTag('slimmedElectrons')
+)
+
 addJetCollection(process,labelName = 'AK8PFCHS', jetSource = cms.InputTag('ak8CHSJets'), algo = 'AK', rParam=0.8, genJetCollection=cms.InputTag('slimmedGenJetsAK8'), jetCorrections = ('AK8PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None'),pfCandidates = cms.InputTag('packedPFCandidates'),
     pvSource = cms.InputTag('offlineSlimmedPrimaryVertices'),
     svSource = cms.InputTag('slimmedSecondaryVertices'),
@@ -785,7 +795,7 @@ process.MyNtuple = cms.EDFilter('NtupleWriter',
         doJets = cms.bool(True),
         #jet_sources = cms.vstring("patJetsAk4PFCHS", "patJetsAk8PFCHS", "patJetsCa15CHSJets", "patJetsCa8CHSJets", "patJetsCa15PuppiJets", "patJetsCa8PuppiJets"),
    #     jet_sources = cms.vstring("slimmedJets","slimmedJetsPuppi"),
-        jet_sources = cms.vstring("slimmedJets","slimmedJetsPuppi","patJetsAK8PFPUPPI","patJetsAK8PFCHS"),
+        jet_sources = cms.vstring("slimmedJets","slimmedJetsPuppi","patJetsAK8PFPUPPI","patJetsAK8PFCHS","patJetsAK4PFPUPPI"),
         jet_ptmin = cms.double(10.0),
         jet_etamax = cms.double(999.0),
         
@@ -912,7 +922,7 @@ process.MyNtuple = cms.EDFilter('NtupleWriter',
         stablegenparticle_source = cms.InputTag("packedGenParticles"),
         doAllGenParticles = cms.bool(False), #set to true if you want to store all gen particles, otherwise, only prunedPrunedGenParticles are stored (see above)
         doGenJets = cms.bool(not useData),
-        genjet_sources = cms.vstring("slimmedGenJets","slimmedGenJetsAK8","ca15GenJets"),
+        genjet_sources = cms.vstring("slimmedGenJets","ak8GenJets","ca15GenJets"),
         genjet_ptmin = cms.double(10.0),
         genjet_etamax = cms.double(5.0),
                             
@@ -933,8 +943,8 @@ process.MyNtuple = cms.EDFilter('NtupleWriter',
         pf_collection_source = cms.InputTag("packedPFCandidates"),
 
         # # *** HOTVR & XCone stuff
-        doHOTVR = cms.bool(True),
-        doXCone = cms.bool(True),
+        doHOTVR = cms.bool(False),
+        doXCone = cms.bool(False),
         doGenHOTVR = cms.bool(not useData),
         doGenXCone = cms.bool(not useData),    
          # doHOTVR = cms.bool(False),
